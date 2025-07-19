@@ -1,8 +1,58 @@
 Project:
-	▫ List out problems that underrepresented woman face
-	▫ List out solutions
-	▫ Choose solution to implement in code
-	▫ List out mvp features
-	▫ Map out user flow
-	▫ Make software requirements document
-	▫ Start programming
+	✔ List out problems that underrepresented woman face @done(25-07-19 10:23) @started(25-07-19 10:23)
+	✔ List out solutions @started(25-07-19 10:23) @done(25-07-19 10:23) @lasted(51s)
+	✔ Choose solution to implement in code @started(25-07-19 10:23) @done(25-07-19 10:23) @lasted(53s)
+		▫ Solution: Product that allows travelling women to document safe/unsafe passages or places
+	✔ List out mvp features @started(25-07-19 10:24) @done(25-07-19 10:35) @lasted(11m22s)
+		▫ Home page popup with information
+		▫ User can view and filter rated locations near them
+			▫ Rate locations cluster based on proximity
+		▫ User can add rated locations (requires account)
+			▫ Tap and rate
+			▫ Current location rate
+		▫ Account flow
+
+		▫ Rate location: x/5 rating, reason, (maybe) image, bad rating reports
+	✔ Map out user flow @started(25-07-19 10:35) @done(25-07-19 10:35) @lasted(23s)
+		▫ User wants safety of route/location: website homepage
+		▫ User wants to add rated location: website homepage -> find location + add rating button -> signup/signin -> can add rating
+	✔ Make software requirements document @started(25-07-19 10:38) @done(25-07-19 11:10) @lasted(32m57s)
+		Map:
+			▫ Visualize map
+			▫ Locations colored by rating
+			▫ Tap on location: Popup of rated location
+			▫ Cluster locations based on proximity
+			Technologies:
+				▫ Maps JavaScript API (Maps tier): 1, 2, 3
+				▫ Library googlemaps/markercluster: 4
+				
+		Map helpders:
+			▫ Convert user location to map location
+			▫ Convert address to map location
+			Technologies:
+				▫ Geocoding API (Places tier): 1, 2
+		
+		Location popup:
+			▫ Info: Average rating, description, best time, worst time
+			▫ Button: More button, escape button
+
+		Rating locations:
+			▫ Tap location/address, if no location -> create location & redirect to add rating of location
+			▫ If location -> redirect to add rating of location
+			▫ Rating input
+			▫ Description input, (maybe) 'common descriptions' dropdown
+			▫ Time input w/ now button
+			▫ Cancel & save button
+
+		Database:
+			▫ Auth user
+			▫ User
+				▫ User's ratings
+			▫ Ratings
+				▫ User author
+				▫ Ratings
+				▫ Location
+				▫ Times
+				▫ Descriptions
+	▫ Start programming @started(25-07-19 11:11)
+
