@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { User as AppUser } from '@/types';
+import axios from 'axios';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<AppUser>) => Promise<void>;
   getAuthLevel: () => Promise<{ currentAuthLevel: 'aal0' | 'aal1' | 'aal2' | null; requiredAuthLevel: 'aal1' | 'aal2' | null; error: Error | null }>;
+  getUser: () => Promise<any>;
+  version: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [version, setVersion] = useState<number>(0);
 
   // Debug: Check if Supabase is configured
   useEffect(() => {
@@ -55,6 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           await fetchProfile(session.user.id);
         }
         setLoading(false);
+        setVersion(v => v + 1); // Increment version on initial session
         clearTimeout(timeout);
       })
       .catch(error => {
@@ -76,6 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       setLoading(false);
+      setVersion(v => v + 1); // Increment version on auth state change
     });
 
     return () => {
@@ -86,22 +92,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
-
-      if (error) {
-        console.error('Error fetching profile:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
-        // Set profile to null if there's an error so the app can continue
+      const res = await axios.get(`/api/profile/${userId}`);
+      if (res.data && res.data.user) {
+        setProfile(res.data.user);
+      } else {
         setProfile(null);
-        return;
       }
-
-      setProfile(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile:', error);
       setProfile(null);
     }
@@ -109,7 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -176,6 +173,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const getUser = async () => {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Error getting user:', error);
+        return null;
+      }
+      return data.user;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  };
+
   const value = {
     user,
     profile,
@@ -186,6 +197,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     updateProfile,
     getAuthLevel,
+    getUser,
+    version,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

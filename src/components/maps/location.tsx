@@ -4,15 +4,18 @@ import { Location } from '@/types';
 // MARKERS
 interface MarkerPopupParams {
   location: Location;
-  // onAddRating: () => void;
+  onAddRating: () => void;
 }
 
-export function MarkerPopup({ location }: MarkerPopupParams) {
+export function MarkerPopup({ location, onAddRating }: MarkerPopupParams) {
   // TODO: Rewrite to fit database's location dtye
   return (
     <div className="flex w-72 flex-col gap-2 rounded-lg border border-gray-200 bg-white/95 p-4 shadow-lg">
       <div className="mb-1 text-lg font-semibold">{location.name}</div>
       <div className="mb-2 text-sm text-gray-700">{location.description}</div>
+      <button id="add-rating-btn" className="mt-2 w-full rounded bg-blue-600 px-4 py-2 font-semibold text-white shadow transition hover:bg-blue-700">
+        Add Rating
+      </button>
     </div>
   );
 }

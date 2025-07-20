@@ -1,72 +1,114 @@
 // DATABASE
-
-export interface Database {
-  public: {
-    Tables: {
-      users: {
-        Row: {
-          id: string;
-          email: string;
-          tokens: number;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id: string;
-          email: string;
-          tokens?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string;
-          tokens?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
-      };
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      [_ in never]: never;
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-  };
-}
-
 export interface User {
   id: string;
   email: string;
-  tokens: number;
-  created_at: string;
-  updated_at: string;
+  name: string | null;
+  ratings?: Rating[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-// TODO: add in
 export interface Location {
   id: string;
-  ll_position: { lat: number; lng: number }; // data: ll_position: { lat: -33.8568, lng: 151.2153 },
   name: string;
-  description: string;
+  description: string | null;
+  latitude: number;
+  longitude: number;
+  ratings?: Rating[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Rating {
   id: string;
-  name: string;
-  description: string
+  user: User;
+  userId: string;
+  location: Location;
+  locationId: string;
+  value: number;
+  description: string | null;
   time: string;
-  rating: number;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// API ENDPOINTS
+export type SignInArgs = {
+  email: string;
+  password: string;
+};
+
+export type SignInRet = {
+  status: 'success' | 'error';
+  message: string;
+  redirectUrl?: string;
+};
+
+export type SignUpArgs = {
+  email: string;
+  password: string;
+  name: string;
+};
+
+export type SignUpRet = {
+  status: 'success' | 'error';
+  message: string;
+  redirectUrl?: string;
+};
+
+export type DeleteMFAArgs = {};
+
+export type DeleteMFARet = {
+  status: string;
+  message: string;
+};
+
+export type ProfileArgs = {};
+
+export type ProfileRet = {
+  user: User;
+};
+
+export type LocationGetArgs = {};
+
+export type LocationGetRet = {
+  status: string;
+  message: string;
+  redirectUrl?: string;
+};
+
+export type LocationCreateArgs = {
+  name: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+};
+
+export type LocationCreateRet = {
+  status: string;
+  message: string;
+  locationId?: string;
+};
+
+export type RatingGetArgs = {};
+
+export type RatingGetRet = {
+  status: string;
+  message: string;
+};
+
+export type RatingCreateArgs = {
+  locationId: string;
+  rating: number;
+  time: Date;
+};
+
+export type RatingCreateRet = {
+  status: string;
+  message: string;
+};
 
 // Additional
-
-export interface SearchParams {
-  searchParams: { [key: string]: string | string[] | undefined };
-}
 
 export type Role = 'admin' | 'user' | 'guest';

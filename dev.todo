@@ -1,3 +1,11 @@
+Todo:
+	▫ List out all database interactions required, go through user flows @high
+		▫ Sign up -> create db user
+		▫ Add rating
+			▫ If new location -> create new location, store location, create new rating
+			▫ If old location -> create new rating
+		▫ Load all locations + ratings connected to them
+
 Project:
 	✔ List out problems that underrepresented woman face @done(25-07-19 10:23) @started(25-07-19 10:23)
 	✔ List out solutions @started(25-07-19 10:23) @done(25-07-19 10:23) @lasted(51s)

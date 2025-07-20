@@ -2,6 +2,10 @@
 export const config = {
   app: {
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    default_route:
+      process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_DEFAULT_ROUTE
+        ? process.env.NEXT_PUBLIC_APP_URL + process.env.NEXT_PUBLIC_DEFAULT_ROUTE
+        : 'http://localhost:3000' + process.env.NEXT_PUBLIC_DEFAULT_ROUTE,
     name: process.env.NEXT_PUBLIC_APP_NAME || 'TODO NAME',
   },
   supabase: {
@@ -19,5 +23,7 @@ export const config = {
   google: {
     key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     map_id: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID || '',
+    client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+    client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
   },
 };

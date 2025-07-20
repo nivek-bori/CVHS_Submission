@@ -20,6 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full w-full">
       <body className={`${geistSans.variable} ${geistMono.variable} h-full w-full antialiased`}>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
