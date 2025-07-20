@@ -18,16 +18,16 @@ Project:
 		▫ User wants to add rated location: website homepage -> find location + add rating button -> signup/signin -> can add rating
 	✔ Make software requirements document @started(25-07-19 10:38) @done(25-07-19 11:10) @lasted(32m57s)
 		Map:
-			▫ Visualize map
-			▫ Locations colored by rating
-			▫ Tap on location: Popup of rated location
-			▫ Cluster locations based on proximity
+			✔ Visualize map @started(25-07-19 11:59) @done(25-07-19 11:59) @lasted(42s)
+			✔ Locations colored by rating @started(25-07-19 13:17) @done(25-07-19 13:17) @lasted(23s)
+			✔ Tap on location: Popup of rated location @started(25-07-19 13:17) @done(25-07-19 13:17) @lasted(25s)
+			✔ Cluster locations based on proximity @started(25-07-19 15:11) @done(25-07-19 15:11) @lasted(52s)
 			Technologies:
 				▫ Maps JavaScript API (Maps tier): 1, 2, 3
 				▫ Library googlemaps/markercluster: 4
 				
 		Map helpders:
-			▫ Convert user location to map location
+			✔ Convert user location to map location @started(25-07-19 15:11) @done(25-07-19 15:11) @lasted(57s)
 			▫ Convert address to map location
 			Technologies:
 				▫ Geocoding API (Places tier): 1, 2
