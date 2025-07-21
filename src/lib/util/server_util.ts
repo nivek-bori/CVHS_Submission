@@ -29,6 +29,6 @@ export async function parseError(message: string, code?: string): Promise<string
 	// google
 	if (code === 'identity_already_exists') retMessage = 'That account is already linked to another account. Try another account'
 
-	console.log('ParseError:', code, message.slice(0, 100));
+	console.log('ParseError:', code, message.slice(0, 200), 'ParseErrorClose');
 	return retMessage;
 }

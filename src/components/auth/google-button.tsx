@@ -93,12 +93,12 @@ export default function GoogleAuthButton({ handleGoogleAuthCallback, setStatus, 
         data-client_id={config.google.client_id}
         data-context={buttonContext} // Use context to differentiate
         data-ux_mode="popup"
-        data-callback="__googleAuthCallback" // Refer to the global callback
+        data-callback="googleAuthCallback" // Refer to the global callback
         data-auto_select="true"
         data-itp_support="true"></div>
 
       <div
-        className="g_id_signin mt-4" // Use a class, but differentiate with data-context or id for renderButton
+        className="g_id_signin w-full mt-4" // Use a class, but differentiate with data-context or id for renderButton
         data-type="standard"
         data-shape="pill"
         data-theme="outline"
