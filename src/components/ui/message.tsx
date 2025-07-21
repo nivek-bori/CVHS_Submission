@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+'use client'
+
+import React, { useEffect, useState } from 'react';
 
 interface MessageBoxProps {
   children: React.ReactNode;
@@ -33,6 +35,10 @@ export default function MessageBox({ children, color, className = '' }: MessageB
     border = 'border-red-400';
     text = 'text-red-800';
   }
+
+  useEffect(() => {
+    setVisible(true);
+  }, [children]);
 
   return (
     <div

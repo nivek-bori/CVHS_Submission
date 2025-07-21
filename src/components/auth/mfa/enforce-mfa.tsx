@@ -82,7 +82,7 @@ export default function EnforceMFA({ children, className='' }: Readonly<{ childr
     router.push(`${config.app.default_route}?message=There was an error opening that page_loading`);
   }
   if (status.status === 'signin') {
-    return <SignIn onSignIn={checkMFA} message={'Please sign in first'} />;
+    return <SignIn onSignIn={checkMFA}/>;
   }
   if (status.status === 'mfa') {
     return <VerifyMFA onMFA={checkMFA} />;

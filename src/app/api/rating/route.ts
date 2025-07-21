@@ -12,27 +12,14 @@ import prisma from '@/lib/prisma';
 import { RatingCreateRet, RatingGetRet } from '@/types';
 
 export async function GET(request: Request) {
-  // Auth
-  const supabase = await createServerSupabaseClient();
-
-  const { data: auth_data, error: auth_error } = await supabase.auth.getUser();
-  if (auth_error) {
-    const retBody: RatingGetRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!auth_data.user) {
-    const retBody: RatingGetRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!isAuthorized(auth_data.user.user_metadata.role, 'guest')) {
-    const retBody: RatingGetRet = { status: 'error', message: 'You do not have access to this' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-
   try {
-    const Ratings = await prisma.rating.findMany();
+    const ratings = await prisma.rating.findMany({
+      include: {
+        user: true,
+      },
+    });
 
-    return NextResponse.json({ status: 'success', Ratings }, { status: 200 });
+    return NextResponse.json({ status: 'success', ratings }, { status: 200 });
   } catch (error: any) {
     console.log('Route: /api/Rating error', error);
 
@@ -42,40 +29,29 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  // Auth
-  const supabase = await createServerSupabaseClient();
-
-  const { data: auth_data, error: auth_error } = await supabase.auth.getUser();
-  if (auth_error) {
-    const retBody: RatingCreateRet = { status: 'error', message: 'Please sign in' }
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!auth_data.user) {
-    const retBody: RatingCreateRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!isAuthorized(auth_data.user.user_metadata.role, 'guest')) {
-    const retBody: RatingCreateRet = { status: 'error', message: 'You do not have access to this' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-
   // Request parameter verification
   const body = await request.json();
+  const userId = typeof body.userId === 'string' ? body.userId : String(body.userId);
   const locationId = typeof body.locationId === 'string' ? body.locationId : String(body.locationId);
   const value = Number(body.rating);
   const description = body.description !== undefined ? String(body.description) : undefined;
   const time = new Date(body.time);
+  time.setSeconds(0, 0);
 
   if (!body) {
     const retBody: RatingCreateRet = { status: 'error', message: 'Please provide all required information' };
     return NextResponse.json(retBody, { status: 400 });
   }
   if (
+    typeof userId !== 'string' ||
+    !userId ||
     typeof locationId !== 'string' ||
     !locationId ||
     Number.isNaN(value) ||
-    value < 1 || value > 5 ||
-    !(time instanceof Date) || isNaN(time.getTime()) ||
+    value < 1 ||
+    value > 5 ||
+    !(time instanceof Date) ||
+    isNaN(time.getTime()) ||
     (description !== undefined && typeof description !== 'string')
   ) {
     const retBody: RatingCreateRet = { status: 'error', message: 'Please provide information of correct data type' };
@@ -86,7 +62,7 @@ export async function POST(request: Request) {
     // Create the Rating using Prisma
     const newRating = await prisma.rating.create({
       data: {
-        userId: auth_data.user.id,
+        userId: userId,
         locationId,
         value,
         description,

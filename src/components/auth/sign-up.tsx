@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useState, useEffect } from 'react';
 
 import axios from 'axios';
@@ -11,6 +11,8 @@ import Loading from '../ui/loading';
 import FloatingMessage from '../ui/floating-message';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import AuthenticationSucess from './authentication-success';
+import { config } from '@/lib/config';
+import { supabase } from '@/lib/supabase/client';
 
 export default function SignUp() {
   const [status, setStatus] = useState<{ status: 'success' | 'success-page' | 'loading' | 'error' | 'page_loading' | 'null'; message: string }>({
@@ -41,7 +43,7 @@ export default function SignUp() {
       .then(res => {
         setStatus({ status: res.data.status, message: res.data.message });
 
-        setTimeout(() => setStatus({ status: 'success-page', message: '' }), 3000);
+        setStatus({ status: 'success-page', message: '' });
       })
       .catch(err => {
         // this is an axios error - refer to docuemntation
@@ -96,12 +98,77 @@ export default function SignUp() {
     signUp(email, password, name);
   };
 
+  const handleGoogleAuthResponse = useCallback(async (response: any) => {
+      const { data: auth_data, error: auth_error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: response.credential,
+      });
+  
+      if (auth_error) {
+        setStatus({ status: 'error', message: await parseError(auth_error.message, auth_error.code) });
+        return;
+      }
+      if (!auth_data.user) {
+        setStatus({ status: 'error', message: 'There was an issue signing in with Google' });
+        return;
+      }
+  
+      setStatus({ status: 'success', message: 'Successfully signed in with Google' });
+    }, []);
+  
+    // create google social auth
+    useEffect(() => {
+      setStatus({ status: 'page_loading', message: '' });
+  
+      window.handleGoogleAuthResponse = handleGoogleAuthResponse;
+  
+      if (window.google?.accounts?.id) {
+        // initialize
+        if (typeof window.google.accounts.id.initialize === 'function') {
+          window.google.accounts.id.initialize({
+            client_id: config.google.client_id,
+            callback: handleGoogleAuthResponse,
+            auto_select: true,
+            itp_support: true,
+          });
+        }
+        // select user account
+        if (typeof window.google.accounts.id.prompt === 'function') {
+          window.google.accounts.id.prompt();
+        }
+        // render button
+        const buttonContainer = document.querySelector('.g_id_signup');
+        if (buttonContainer && typeof window.google.accounts.id.renderButton === 'function') {
+          window.google.accounts.id.renderButton(buttonContainer as HTMLElement, {
+            type: 'standard',
+            shape: 'pill',
+            theme: 'outline',
+            text: 'signup_with',
+            size: 'large',
+            logo_alignment: 'left',
+          });
+  
+          setStatus({ status: 'null', message: '' });
+        } else {
+          setStatus({ status: 'error', message: 'There was an issue loading Google sign in. Please try again later if that is an issue' });
+        }
+      }
+      return () => {
+        delete window.handleGoogleAuthResponse;
+      };
+    }, []);
+
   if (status.status === 'page_loading') {
     return <Loading message={'Loading...'} />;
   }
 
   if (status.status === 'success-page') {
-    return <AuthenticationSucess header={'Sign up success'}></AuthenticationSucess>;
+    return (
+      <>
+        <FloatingMessage color='blue'>Please confirm your email</FloatingMessage>
+        <AuthenticationSucess header={'Sign up success'}></AuthenticationSucess>
+      </>
+    );
   }
 
   return (
@@ -159,6 +226,7 @@ export default function SignUp() {
                 required
               />
             </div>
+
             <button
               type="submit"
               className="mt-4 w-full rounded bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:opacity-50"
@@ -166,6 +234,25 @@ export default function SignUp() {
               {status.status === 'loading' ? 'Signing Up...' : 'Sign Up'}
             </button>
           </form>
+
+          <div
+            id="g_id_onload"
+            data-client_id={config.google.client_id}
+            data-context="signup"
+            data-ux_mode="popup"
+            data-callback="handleGoogleAuthResponse"
+            data-auto_select="true"
+            data-itp_support="true"></div>
+
+          <div
+            className="g_id_signup mt-4"
+            data-type="standard"
+            data-shape="pill"
+            data-theme="outline"
+            data-text="signup_with"
+            data-size="large"
+            data-logo_alignment="left"></div>
+          
           <div className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{' '}
             <a href="/auth/sign-in" className="text-blue-600 hover:underline">

@@ -158,7 +158,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const getAuthLevel = async () => {
-    if (!user) return { currentAuthLevel: 'aal0' as 'aal0', requiredAuthLevel: null, error: null };
+    if (!user) return { currentAuthLevel: 'aal0' as const, requiredAuthLevel: null, error: null };
 
     try {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -177,12 +177,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       const { data, error } = await supabase.auth.getUser();
       if (error) {
-        console.error('Error getting user:', error);
         return null;
       }
       return data.user;
     } catch (error) {
-      console.error('Error getting user:', error);
       return null;
     }
   };

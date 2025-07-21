@@ -67,8 +67,7 @@ export default function SignIn(params: SignInParams) {
         return;
       }
 
-      setStatus({ status: 'success', message: 'Successfully signed in. Redirecting in 3 seconds' });
-      setTimeout(() => setStatus({ status: 'success-page', message: '' }));
+      setStatus({ status: 'success-page', message: '' });
     } catch (error: any) {
       setStatus({ status: 'error', message: 'There was an erorr signing in. Please try again' });
     }

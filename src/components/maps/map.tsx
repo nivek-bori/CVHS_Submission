@@ -1,15 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import ReactDOMServer from 'react-dom/server';
 import { Menu, X } from 'lucide-react';
 import { Loader } from '@googlemaps/js-api-loader';
-import { Location } from '@/types';
-import { getMarker, MarkerPopup, onClusterCLick, Renderer } from './location';
+import { Location, RatingCreateArgs } from '@/types';
+import { getMarker, MarkerPopup, onClusterCLick, Renderer, TemporaryMarkerPopup } from './location';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import Loading from '../ui/loading';
 import MessageBox from '../ui/message';
 import { config } from '@/lib/config';
+import axios from 'axios';
+import { useAuth } from '../auth/auth-provider';
+import { createRoot } from 'react-dom/client';
+import { useRouter } from 'next/navigation';
 
 declare global {
   interface Window {
@@ -19,19 +22,27 @@ declare global {
 }
 
 export default function Map() {
+  const [status, setStatus] = useState<{ status: 'null' | 'error' | 'success' | 'loading'; message: string }>({ status: 'null', message: '' });
+
+  const { user } = useAuth();
+  const router = useRouter();
+
   const htmlMapRef = useRef(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const tempMarkerRef = useRef<any>(null);
-  const [isLoaded, setIsLoaded] = useState<Boolean>(false);
+  const markersRef = useRef<any>(null);
 
+  const [locId, setLocId] = useState<string | null>(null);
   const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(null);
   const [locName, setLocName] = useState<string>('');
-  const [showSidebar, setShowSidebar] = useState<Boolean>(false);
+  const [showSidebar, setShowSidebar] = useState<boolean>(false);
 
   // initialze map
   useEffect(() => {
+    setStatus({ status: 'loading', message: 'Loading...' });
+
     const loader = new Loader({
       apiKey: config.google.key!,
       version: 'weekly',
@@ -43,9 +54,26 @@ export default function Map() {
       .then(async () => {
         const { Map } = (await google.maps.importLibrary('maps')) as google.maps.MapsLibrary;
 
+        let defaultLat = 0;
+        let defaultLng = 0;
+        let defaultZoom = 1;
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              const { latitude, longitude } = position.coords;
+              setLatLng({ lat: latitude, lng: longitude });
+              defaultLat = latitude;
+              defaultLng = longitude;
+              defaultZoom = 13;
+            },
+            error => {},
+          );
+        }
+
         const map = new Map(htmlMapRef.current!, {
-          center: { lat: -33.860664, lng: 151.208138 },
-          zoom: 13,
+          center: { lat: defaultLat, lng: defaultLng },
+          zoom: defaultZoom,
           mapId: config.google.map_id,
         });
         mapRef.current = map;
@@ -67,83 +95,37 @@ export default function Map() {
 
         const locations = await loadLocations();
         await populateMarkers(locations);
-        setTimeout(() => {
-          setIsLoaded(true);
-        }, 1000);
+        setStatus({ status: 'null', message: ''})
       })
       .catch(error => {
         console.error('Error loading Google Maps:', error);
       });
   }, [setLatLng]);
 
-  // Get current lat and lng from user's browser
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        setLatLng({ lat: latitude, lng: longitude });
-      },
-      error => {},
-    );
-  }, []);
-
   // load locations
   const loadLocations = async () => {
-    const locations: Location[] = [
-      {
-        id: '1',
-        name: 'Sydney Opera House',
-        description: 'Famous performing arts center in Sydney.',
-        latitude: -33.8568,
-        longitude: 151.2153,
-        createdAt: '2025-07-20T10:00:00.000Z',
-        updatedAt: '2025-07-20T10:00:00.000Z',
-      },
-      {
-        id: '2',
-        name: 'Harbour Bridge',
-        description: 'Iconic steel arch bridge.',
-        latitude: -33.8523,
-        longitude: 151.2108,
-        createdAt: '2025-07-20T10:00:00.000Z',
-        updatedAt: '2025-07-20T10:00:00.000Z',
-      },
-      {
-        id: '3',
-        name: 'Bondi Beach',
-        description: 'Popular beach in Sydney.',
-        latitude: -33.8908,
-        longitude: 151.2743,
-        createdAt: '2025-07-20T10:00:00.000Z',
-        updatedAt: '2025-07-20T10:00:00.000Z',
-      },
-      {
-        id: '4',
-        name: 'Darling Harbour',
-        description: 'Recreational and pedestrian precinct.',
-        latitude: -33.8748,
-        longitude: 151.1987,
-        createdAt: '2025-07-20T10:00:00.000Z',
-        updatedAt: '2025-07-20T10:00:00.000Z',
-      },
-      {
-        id: '5',
-        name: 'The Rocks',
-        description: 'Historic area of Sydney.',
-        latitude: -33.8599,
-        longitude: 151.2091,
-        createdAt: '2025-07-20T10:00:00.000Z',
-        updatedAt: '2025-07-20T10:00:00.000Z',
-      },
-    ];
-
-    return locations;
+    // api call to get locations
+    try {
+      const res = await axios.get('/api/location');
+      if (res.data && res.data.locations) {
+        return res.data.locations;
+      } else {
+        return [];
+      }
+    } catch (err) {
+      console.error('Failed to fetch locations:', err);
+      return [];
+    }
   };
 
   // render locations
   const populateMarkers = async (locations: Location[]) => {
+    if (markersRef.current) {
+      // clear all markers
+      markersRef.current.forEach((marker: any) => marker.setMap(null));
+      markersRef.current = null;
+    }
+
     const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker')) as google.maps.MarkerLibrary;
 
     const markers = locations.map(loc => {
@@ -163,23 +145,25 @@ export default function Map() {
 
       // info window of marker
       marker.addListener('click', () => {
-        onMarckerClicked(marker, loc);
+        onMarckerClicked(marker, loc, false);
+        setLocId(loc.id);
       });
 
       return marker;
     });
 
+    markersRef.current = markers;
     new MarkerClusterer({ markers, map: mapRef.current, renderer: new Renderer(), onClusterClick: onClusterCLick });
   };
 
-  const populateOneMarker = async (location: Location) => {
+  const populateTemporaryMarker = async (location: Location) => {
     const { AdvancedMarkerElement } = (await google.maps.importLibrary('marker')) as google.maps.MarkerLibrary;
 
     // random color
     const temp_color_hex_str = `#${Math.floor(Math.random() * 16777215)
       .toString(16)
       .padStart(6, '0')}`;
-    const markerContent = getMarker(document, temp_color_hex_str); // TODO: Color based on rating
+    const markerContent = getMarker(document, temp_color_hex_str);
 
     // marker
     const marker = new AdvancedMarkerElement({
@@ -189,46 +173,58 @@ export default function Map() {
       content: markerContent,
     });
 
-    if (infoWindowRef.current) {
-      onMarckerClicked(marker, location);
-    }
+    onMarckerClicked(marker, location, true);
+    setLocId(null);
 
     marker.addListener('click', () => {
-      onMarckerClicked(marker, location);
+      onMarckerClicked(marker, location, true);
+      setLocId(null);
     });
 
     return marker;
   };
 
   // user interaction
-  const onMarckerClicked = (marker: any, location: any) => {
+  const onMarckerClicked = (marker: any, location: any, temporary: boolean) => {
     if (infoWindowRef.current) {
       setLocName(location.name);
       setLatLng({ lat: location.latitude, lng: location.longitude });
 
-      infoWindowRef.current.close();
-      const content = ReactDOMServer.renderToString(
+      const content = !temporary ? (
         <MarkerPopup
           location={location}
-          onAddRating={() => {
-            setShowSidebar(true);
-            console.log('asdfsd');
-          }}
-        />,
+          onAddRating={() => setShowSidebar(true)}
+        />
+      ) : (
+        <TemporaryMarkerPopup
+            location={location}
+            onAddRating={() => setShowSidebar(true)}
+        />
       );
-      infoWindowRef.current.setContent(content);
-      infoWindowRef.current.open(mapRef.current, marker);
 
-      setTimeout(() => {
-        const btn = document.getElementById('add-rating-btn');
-        if (btn) {
-          btn.addEventListener('click', () => setShowSidebar(true));
-        }
-      }, 100);
+      renderReactIntoInfoWindow(infoWindowRef.current, content);
+      infoWindowRef.current.open(mapRef.current, marker);
+    }
+  };
+
+  // allows for react in the info window
+  function renderReactIntoInfoWindow(infoWindow: google.maps.InfoWindow, content: React.ReactElement) {
+    let container = infoWindow.getContent() as HTMLDivElement;
+    let root: any;
+
+    if (!container || !container.dataset.reactRoot) {
+      container = document.createElement('div');
+      container.dataset.reactRoot = 'true';
+      root = createRoot(container);
+      (container as any).__reactRoot = root;
+      infoWindow.setContent(container);
+    } else {
+      root = (container as any).__reactRoot;
     }
 
-    // clear form info
-  };
+    root.render(content);
+    return { container, root };
+  }
 
   const setTemporaryMarker = async (lat: number, lng: number, name: string) => {
     // remove old marker
@@ -248,7 +244,7 @@ export default function Map() {
       updatedAt: new Date().toISOString(),
     };
 
-    const marker = await populateOneMarker(newLocation);
+    const marker = await populateTemporaryMarker(newLocation);
     tempMarkerRef.current = marker;
   };
 
@@ -265,17 +261,92 @@ export default function Map() {
   const handleFormSubmission = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // TODO: Database - stuff
+    if (!user || !user.id) {
+      setStatus({ status: 'error', message: 'Please sign in before creating a review. Redirecting you in a few seconds...' });
+      setTimeout(() => router.push('/auth/sign-in'), 3000);
+      return;
+    }
+
+    const form = e.currentTarget;
+    const data = new window.FormData(form);
+
+    const description = data.get('description');
+    const rating = Number(data.get('rating'));
+    const timeValue = data.get('time');
+    const time = timeValue ? new Date(timeValue.toString()) : new Date();
+
+    if (locId) {
+      const ratingBody: RatingCreateArgs = {
+        userId: user.id,
+        locationId: locId,
+        description: description ? description.toString() : '',
+        rating: rating,
+        time: time,
+      };
+      // create new rating with current location id
+      axios
+        .post('/api/rating', ratingBody)
+        .then(async res => {
+          setStatus({ status: 'success', message: 'Successfully saved rating' });
+          setTimeout(() => {
+            if (status.status === 'success') setStatus({ status: 'null', message: '' });
+          }, 3000);
+          const locations = await loadLocations();
+          populateMarkers(locations);
+          if (infoWindowRef.current) infoWindowRef.current.close();
+        })
+        .catch(err => {
+          setStatus({ status: 'error', message: 'Failed to create new rating' });
+        });
+    } else {
+      // create new location and get location id
+      if (!latLng) return; // safety check
+      axios
+        .post('/api/location', {
+          name: locName.substring(24) || 'Untitled',
+          description: description ? description.toString() : '',
+          latitude: latLng.lat,
+          longitude: latLng.lng,
+        })
+        .then(res => {
+          const locationId = res.data.locationId;
+          if (locationId) {
+            // create new rating at created location
+            const ratingBody: RatingCreateArgs = {
+              userId: user.id,
+              locationId,
+              description: description ? description.toString() : '',
+              rating: rating,
+              time: time,
+            };
+            return axios.post('/api/rating', ratingBody);
+          } else {
+            throw new Error('Failed to create new location');
+          }
+        })
+        .then(async () => {
+          setStatus({ status: 'success', message: 'Successfully saved rating' });
+          setTimeout(() => {
+            if (status.status === 'success') setStatus({ status: 'null', message: '' });
+          }, 3000);
+          const locations = await loadLocations();
+          populateMarkers(locations);
+          if (infoWindowRef.current) infoWindowRef.current.close();
+        })
+        .catch(err => {
+          setStatus({ status: 'error', message: 'Failed to create new rating' });
+        });
+    }
   };
 
   return (
     <div className="h-full w-full overflow-hidden">
-      {!isLoaded && <Loading message={'Loading map...'} />}
+      {status.status === 'loading' && <Loading message={'Loading map...'} />}
 
       <div className="flex h-full w-full">
         <div ref={htmlMapRef} className="h-full flex-1"></div>
 
-        {isLoaded && (
+        {status.status !== 'loading' && (
           <button
             className={`${showSidebar ? 'right-81' : 'right-1'} absolute top-22 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-2xl text-white shadow-lg transition hover:bg-blue-700`}
             onClick={() => setShowSidebar(v => !v)}
@@ -284,12 +355,12 @@ export default function Map() {
           </button>
         )}
 
-        {isLoaded && showSidebar && (
+        {status.status !== 'loading' && showSidebar && (
           <div className="z-10 flex h-full w-80 flex-col gap-4 rounded-lg border border-gray-200 bg-white/95 p-6 shadow-lg">
-            {latLng == null && (
-              <MessageBox color="red" className="mb-3">
-                Please select a location first
-              </MessageBox>
+            {status.status === 'success' && <MessageBox color="green" className="mb-3" children={status.message} />}
+            {status.status === 'error' && <MessageBox color="red" className="mb-3" children={status.message} />}
+            {status.status === 'null' && latLng == null && (
+              <MessageBox color="blue" className="mb-3" children={'Please select a location before leaving a rating'} />
             )}
             <div className={`${latLng == null ? 'pointer-events-none opacity-50' : ''} flex flex-col gap-y-4`}>
               {/* header + description */}
@@ -299,7 +370,7 @@ export default function Map() {
               </div>
 
               {/* form inputs */}
-              <form onSubmit={handleFormSubmission}>
+              <form onSubmit={handleFormSubmission} className="flex flex-col gap-3">
                 <label className="flex flex-col gap-1">
                   <span className="font-medium">Rating</span>
                   <input
@@ -334,11 +405,9 @@ export default function Map() {
                     </button>
                   </div>
                 </label>
-              </form>
 
-              {/* buttons (cancel and save) */}
-              <div>
-                <div className="mt-2 flex gap-2">
+                {/* buttons (cancel and save) */}
+                <div className="mt-4 flex gap-3">
                   <button
                     className="flex-1 rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
                     onClick={() => setShowSidebar(false)}
@@ -349,7 +418,7 @@ export default function Map() {
                     Save
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
           </div>
         )}

@@ -3,29 +3,10 @@
 
 import { NextResponse } from 'next/server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { isAuthorized } from '@/lib/util/utils';
 import prisma from '@/lib/prisma';
 import { LocationCreateRet, LocationGetRet } from '@/types';
 
 export async function GET(request: Request) {
-  // Auth
-  const supabase = await createServerSupabaseClient();
-
-  const { data: auth_data, error: auth_error } = await supabase.auth.getUser();
-  if (auth_error) {
-    const retBody: LocationGetRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!auth_data.user) {
-    const retBody: LocationGetRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!isAuthorized(auth_data.user.user_metadata.role, 'user')) {
-    const retBody: LocationGetRet = { status: 'error', message: 'You do not have access to this' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-
   try {
     const locations = await prisma.location.findMany({
       include: {
@@ -43,23 +24,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  // Auth
-  const supabase = await createServerSupabaseClient();
-
-  const { data: auth_data, error: auth_error } = await supabase.auth.getUser();
-  if (auth_error) {
-    const retBody: LocationCreateRet = { status: 'error', message: 'Please sign in' }
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!auth_data.user) {
-    const retBody: LocationCreateRet = { status: 'error', message: 'Please sign in' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-  if (!isAuthorized(auth_data.user.user_metadata.role, 'todo')) {
-    const retBody: LocationCreateRet = { status: 'error', message: 'You do not have access to this' };
-    return NextResponse.json(retBody, { status: 401 });
-  }
-
   // Request parameter verification
   const body = await request.json();
   const name = body.name;
@@ -71,12 +35,7 @@ export async function POST(request: Request) {
     const retBody: LocationCreateRet = { status: 'error', message: 'Please provide all required information' };
     return NextResponse.json(retBody, { status: 400 });
   }
-  if (
-    typeof name !== 'string' ||
-    typeof description !== 'string' ||
-    Number.isNaN(latitude) ||
-    Number.isNaN(longitude)
-  ) {
+  if (typeof name !== 'string' || typeof description !== 'string' || Number.isNaN(latitude) || Number.isNaN(longitude)) {
     const retBody: LocationCreateRet = { status: 'error', message: 'Please provide information of correct data type' };
     return NextResponse.json(retBody, { status: 400 });
   }

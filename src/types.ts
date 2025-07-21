@@ -25,7 +25,7 @@ export interface Rating {
   userId: string;
   location: Location;
   locationId: string;
-  value: number;
+  rating: number;
   description: string | null;
   time: string;
   imageUrl: string | null;
@@ -57,20 +57,14 @@ export type SignUpRet = {
   redirectUrl?: string;
 };
 
-export type DeleteMFAArgs = {};
-
 export type DeleteMFARet = {
   status: string;
   message: string;
 };
 
-export type ProfileArgs = {};
-
 export type ProfileRet = {
   user: User;
 };
-
-export type LocationGetArgs = {};
 
 export type LocationGetRet = {
   status: string;
@@ -91,15 +85,15 @@ export type LocationCreateRet = {
   locationId?: string;
 };
 
-export type RatingGetArgs = {};
-
 export type RatingGetRet = {
   status: string;
   message: string;
 };
 
 export type RatingCreateArgs = {
+  userId: string;
   locationId: string;
+  description: string;
   rating: number;
   time: Date;
 };

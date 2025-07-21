@@ -1,17 +1,16 @@
 // formatted env variables
 export const config = {
   app: {
+    name: process.env.NEXT_PUBLIC_APP_NAME || 'SafeSpace',
     url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    default_route:
-      process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_DEFAULT_ROUTE
-        ? process.env.NEXT_PUBLIC_APP_URL + process.env.NEXT_PUBLIC_DEFAULT_ROUTE
-        : 'http://localhost:3000' + process.env.NEXT_PUBLIC_DEFAULT_ROUTE,
-    name: process.env.NEXT_PUBLIC_APP_NAME || 'TODO NAME',
+    default_route: process.env.NEXT_PUBLIC_DEFAULT_ROUTE || '/',
+    default_url: (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + (process.env.NEXT_PUBLIC_DEFAULT_ROUTE || ''),
   },
   supabase: {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
     anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    keyLocation: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   },
   database: {
     url: process.env.DATABASE_URL || '',

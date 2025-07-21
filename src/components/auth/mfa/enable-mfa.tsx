@@ -25,6 +25,28 @@ export default function EnableMFA(params: EnrollMFAParams) {
     message: '',
   });
 
+  // (unblockingº discard unverified mfa factors
+  const discardUnverifiedFactors = async () => {
+    const { data: auth_data, error: auth_error } = await supabase.auth.getUser();
+    if (auth_error || !auth_data.user) { console.log('get user error'); return; };
+
+    try {
+      const { data: factor_data, error: factor_error } = await supabase.auth.mfa.listFactors();
+      if (factor_error) { console.log('list factor error'); return; };
+
+      // unenroll (delete) all unverified factors
+      const unverified = factor_data.all.filter(factor => factor.status === 'unverified');
+      for (const factor of unverified) {
+        const { error: unenroll_error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        console.log('unenroll error');
+      }
+
+      return;
+    } catch (error: any) {
+      return;
+    }
+  };
+
   // check if user can enable mfa -> automatically enroll a mfa factor
   useEffect(() => {
     async function exec() {
@@ -46,7 +68,7 @@ export default function EnableMFA(params: EnrollMFAParams) {
       // check if mfa is already enabled
       const { data: factor_data, error: factor_error } = await supabase.auth.mfa.listFactors();
       if (factor_error) {
-        console.log('factor', factor_error); // TODO: REMOVE
+        console.log('factor', factor_error);
         setStatus({ status: 'error', message: await parseError(factor_error.message, factor_error.code) });
         return;
       }
@@ -55,9 +77,7 @@ export default function EnableMFA(params: EnrollMFAParams) {
       setTimeout(() => controller.abort(), 1000 * 60);
 
       // discard all unverified mfa
-      await axios.post(`http://localhost:3000/api/mfa/`, {}, { signal: controller.signal }).catch(err => {
-        console.log('Route /components/auth/EnrollMFA error', err); // TODO: DEV REMOVE
-      });
+      await discardUnverifiedFactors();
 
       // if totp is already enabled
       if (factor_data.totp.some(factor => factor.status === 'verified' && factor.factor_type === 'totp')) {
@@ -73,7 +93,7 @@ export default function EnableMFA(params: EnrollMFAParams) {
   async function enrollMFA() {
     const { data: enroll_data, error: enroll_error } = await supabase.auth.mfa.enroll({ factorType: 'totp' });
     if (enroll_error) {
-      console.log('enroll error', enroll_error); // TODO: REMOVE
+      console.log('enroll error', enroll_error);
       setStatus({ status: 'error', message: await parseError(enroll_error.message) });
       return;
     }
@@ -110,16 +130,11 @@ export default function EnableMFA(params: EnrollMFAParams) {
     // verifying enrollment challenge
     const { data: verify_data, error: verify_error } = await supabase.auth.mfa.verify({ factorId, challengeId, code: verifyCode });
     if (verify_error) {
-      console.log('verify_error', verify_error); // TODO: REMOVE
       setStatus({ status: 'error', message: await parseError(verify_error.message, verify_error.code) });
       return;
     }
 
     setStatus({ status: 'success', message: 'Successfully enabled multi-factor authentication' });
-  }
-
-  if (status.status === 'page_loading') {
-    return <Loading message={'Loading...'}></Loading>;
   }
 
   // Redirect after success using useEffect
@@ -128,12 +143,16 @@ export default function EnableMFA(params: EnrollMFAParams) {
       const timeout = setTimeout(() => router.push(config.app.default_route), 3000);
       return () => clearTimeout(timeout);
     }
-  }, [status.status, router]);
+  }, [status.status]);
+
+  if (status.status === 'page_loading') {
+    return <Loading message={'Loading...'}></Loading>;
+  }
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="mx-auto flex max-w-3xl flex-col rounded-lg bg-white p-6 shadow-md">
-        <div className="flex flex-col items-center gap-[2rem] px-[2rem]">
+    <div className="flex h-full w-full items-center justify-center bg-gray-100">
+      <div className="mx-auto flex max-w-[40rem] flex-col rounded-2xl bg-white p-6 shadow-xl py-10">
+        <div className="mx-10 mb-[2rem] flex flex-col items-center gap-[1rem]">
           {params.message && (
             <FloatingMessage color="red" className="mb-4">
               {params.message}
@@ -154,20 +173,18 @@ export default function EnableMFA(params: EnrollMFAParams) {
 
           {status.status === 'success' && (
             <FloatingMessage color="green" className="mb-4">
-              {status.message}. Redirecting you soon...
+              {status.message}. Redirecting you in a few seconds...
             </FloatingMessage>
           )}
 
-          <h2 className="mb-6 text-center text-2xl font-semibold text-gray-800">Enable Two-Factor Authentication</h2>
+          <h2 className="text-center text-2xl font-semibold text-gray-800">Enable Two-Factor Authentication</h2>
 
-          <p className="mb-4 text-center text-gray-600">
-            Scan this QR code with your authenticator app (like Google Authenticator, Authy, or 1Password)
-          </p>
+          <p className="text-center text-gray-600">Scan this QR code with your authenticator app (like Google Authenticator, Authy, or 1Password)</p>
         </div>
 
-        <div className="flex flex-col md:flex-row md:space-x-4">
+        <div className="mx-10 flex w-full flex-row items-center justify-center gap-[5rem]">
           {/* QR Code Section */}
-          <div className="m-10 flex flex-col items-center justify-start md:mb-0">
+          <div className="mr-0 flex flex-col items-center justify-center md:mr-0 md:mb-0">
             {qr ? (
               <div className="flex aspect-square items-center justify-center rounded-lg border border-gray-300 bg-gray-50 p-4">
                 <img src={qr} alt="QR Code for MFA setup" className="aspect-square h-40 w-40 object-contain" />
@@ -188,8 +205,8 @@ export default function EnableMFA(params: EnrollMFAParams) {
           </div>
 
           {/* Input Section */}
-          <div className="flex w-full flex-col justify-center">
-            <div className="mb-4">
+          <div className="flex w-full flex-col items-center justify-center md:items-start">
+            <div className="mb-4 w-full max-w-xs">
               <label htmlFor="verifyCode" className="mb-1 block text-sm font-medium text-gray-700">
                 Verification Code
               </label>
@@ -204,7 +221,7 @@ export default function EnableMFA(params: EnrollMFAParams) {
               />
             </div>
 
-            <div className="w-full">
+            <div className="w-full max-w-xs">
               <button
                 onClick={verifyEnrollment}
                 disabled={status.status === 'loading' || verifyCode.length !== 6}
