@@ -75,6 +75,7 @@ export default function Map() {
           center: { lat: defaultLat, lng: defaultLng },
           zoom: defaultZoom,
           mapId: config.google.map_id,
+          minZoom: 3,
         });
         mapRef.current = map;
 
