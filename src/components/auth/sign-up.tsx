@@ -145,12 +145,12 @@ export default function SignUp() {
         if (err.response) {
           console.log('Page /signup google auth create user error: ', err);
           (async () => {
-            setStatus({ status: 'error', message: await parseError(err.response.data.message) });
+            setStatus({ status: 'error', message: 'Google account already connected to an account. Please use a different one' });
           })();
         } else {
           console.log('Page /signup google auth create user error: ', err);
           (async () => {
-            setStatus({ status: 'error', message: await parseError(err.message) });
+            setStatus({ status: 'error', message: 'Google account already connected to an account. Please use a different one' });
           })();
         }
       });
