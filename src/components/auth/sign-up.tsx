@@ -46,14 +46,13 @@ export default function SignUp() {
     setTimeout(() => controller.abort(), 1000 * 60);
 
     axios
-      .post('/api/signup', reqBody, { signal: controller.signal })
+      .post(`${process.env.NEXT_PUBLIC_APP_URL}/api/signup`, reqBody, { signal: controller.signal })
       .then(res => {
         setStatus({ status: res.data.status, message: res.data.message });
 
         setStatus({ status: 'success-page', message: '' });
       })
       .catch(err => {
-        // this is an axios error - refer to docuemntation
         if (err.response) {
           console.log('Page /signup signup error: ', err);
           (async () => {
@@ -123,7 +122,6 @@ export default function SignUp() {
       return;
     }
 
-    // Create database user
     setStatus({ status: 'loading', message: 'Setting up your account...' });
 
     const reqBody: CreateUserArgs = {
@@ -135,8 +133,9 @@ export default function SignUp() {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 1000 * 60);
 
+    console.log(`${process.env.NEXT_PUBLIC_APP_URL}/api/profile`);
     axios
-      .post('api/profile', reqBody, { signal: controller.signal })
+      .post(`${process.env.NEXT_PUBLIC_APP_URL}/api/profile`, reqBody, { signal: controller.signal })
       .then(res => {
         setStatus({ status: res.data.status, message: res.data.message });
 

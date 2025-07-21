@@ -107,7 +107,7 @@ export default function Map() {
   const loadLocations = async () => {
     // api call to get locations
     try {
-      const res = await axios.get('/api/location');
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_APP_URL}/api/location`);
       if (res.data && res.data.locations) {
         console.log(res.data.locations);
         return res.data.locations;
@@ -288,7 +288,7 @@ export default function Map() {
       };
       // create new rating with current location id
       axios
-        .post('/api/rating', ratingBody)
+        .post(`${process.env.NEXT_PUBLIC_APP_URL}/api/rating`, ratingBody)
         .then(async res => {
           setStatus({ status: 'success', message: 'Successfully saved rating' });
           setTimeout(() => {
@@ -305,7 +305,7 @@ export default function Map() {
       // create new location and get location id
       if (!latLng) return; // safety check
       axios
-        .post('/api/location', {
+        .post(`${process.env.NEXT_PUBLIC_APP_URL}/api/location`, {
           name: locName.substring(24) || 'Untitled',
           description: locationDescription ? locationDescription.toString() : '',
           latitude: latLng.lat,
@@ -322,7 +322,7 @@ export default function Map() {
               rating: rating,
               time: time,
             };
-            return axios.post('/api/rating', ratingBody);
+            return axios.post(`${process.env.NEXT_PUBLIC_APP_URL}/api/rating`, ratingBody);
           } else {
             throw new Error('Failed to create new location');
           }

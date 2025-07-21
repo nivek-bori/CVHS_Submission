@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { CreateUserArgs, CreateUserRet } from '@/types';
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
 		const retBody: CreateUserRet = { 
 			status: 'success', 
-			message: 'Successfully signed up user'
+			message: 'Successfully signed up with Google'
 		};
 		return NextResponse.json(retBody, { status: 200 });
 	} catch (error: any) {
@@ -34,7 +34,5 @@ export async function POST(request: Request) {
 
 		const retBody: CreateUserRet = { status: 'error', message: 'Server error. Please refresh or try again later' };
 		return NextResponse.json(retBody, { status: 500 });
-	} finally {
-		await prisma.$disconnect();
 	}
 }

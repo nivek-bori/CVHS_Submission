@@ -4,11 +4,11 @@ import { cookies } from 'next/headers';
 
 // Parsing backend errors for front end presentation
 export async function parseError(message: string, code?: string): Promise<string> {
-	if (typeof message !== 'string') {
-		throw new Error('Parse error must receive a string');
-	}
-
 	let retMessage = message;
+
+	if (typeof message !== 'string') {
+		retMessage = '';
+	}
 
 	// supabase
 	if (message === 'email_not_confirmed') retMessage = 'Please confirm your email';

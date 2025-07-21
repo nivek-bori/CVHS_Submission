@@ -18,7 +18,9 @@ function SignInContent() {
     <>
       {message && <FloatingMessage>{message}</FloatingMessage>}
       <EnforceMFA className="">
-        <AuthenticationSuccess header="Signed In" />
+        <div className="h-full w-full">
+          <AuthenticationSuccess header="Signed In" />
+        </div>
       </EnforceMFA>
     </>
   );

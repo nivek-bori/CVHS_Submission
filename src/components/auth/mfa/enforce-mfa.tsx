@@ -88,7 +88,7 @@ export default function EnforceMFA({ children, className='' }: Readonly<{ childr
     return <VerifyMFA onMFA={checkMFA} />;
   }
   if (status.status === 'authenticated') {
-    return <div className={`${className}`}>{children}</div>;
+    return <div className={`w-full h-full ${className}`}>{children}</div>;
   }
 
   return <Loading message={'Authentication Loading...'} ></Loading>;

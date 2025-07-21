@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import { User as AppUser } from '@/types';
 import axios from 'axios';
+import { config } from '@/lib/config';
 
 interface AuthContextType {
   user: User | null;
@@ -92,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const res = await axios.get(`/api/profile/${userId}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_APP_URL}/api/profile/${userId}`);
       if (res.data && res.data.user) {
         setProfile(res.data.user);
       } else {

@@ -87,7 +87,7 @@ export default function GoogleAuthButton({ handleGoogleAuthCallback, setStatus, 
   }, [buttonContext, buttonText, setStatus]); // Depend on props that influence rendering
 
   return (
-    <>
+    <div className='flex items-center justify-center'>
       <div
         id="g_id_onload" // This should ideally be unique or handled by the top-level app
         data-client_id={config.google.client_id}
@@ -107,6 +107,6 @@ export default function GoogleAuthButton({ handleGoogleAuthCallback, setStatus, 
         data-logo_alignment="left"
         data-context={buttonContext} // Added data-context to help select it
       ></div>
-    </>
+    </div>
   );
 }
