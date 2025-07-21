@@ -10,7 +10,6 @@ interface MessageBoxProps {
 
 export default function MessageBox({ children, color, className = '' }: MessageBoxProps) {
   const [visible, setVisible] = useState(true);
-  if (!visible) return null;
 
   // default is white
   let bg = 'bg-white';
@@ -39,6 +38,8 @@ export default function MessageBox({ children, color, className = '' }: MessageB
   useEffect(() => {
     setVisible(true);
   }, [children]);
+
+  if (!visible) return null;
 
   return (
     <div
