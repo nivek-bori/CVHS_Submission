@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import AdditionalAuth from '@/components/auth/additional-auth';
 import EnforceMFA from '@/components/auth/mfa/enforce-mfa';
 import FloatingMessage from '@/components/ui/floating-message';
@@ -9,16 +10,24 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 import AuthenticationSuccess from '@/components/auth/authentication-success';
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const message = searchParams.get('message');
 
   return (
     <>
       {message && <FloatingMessage>{message}</FloatingMessage>}
-      <EnforceMFA className=''>
-        <AuthenticationSuccess header='Signed In'/>
+      <EnforceMFA className="">
+        <AuthenticationSuccess header="Signed In" />
       </EnforceMFA>
     </>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   );
 }

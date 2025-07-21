@@ -13,7 +13,7 @@ function RatingCard({ rating }: { rating: Rating }) {
   return (
     <div className="flex-1 rounded-lg border border-gray-200 bg-white/95 p-3 shadow">
       <div className="font-semibold text-blue-700">{rating.user?.name || 'Anonymous'}</div>
-      <div className="text-lg font-bold">{`Safety: ${rating.value}/5`}</div>
+      <div className="text-lg font-bold">{`Safety: ${rating.rating}/5`}</div>
       <div className="text-xs text-gray-500">
         {new Date(rating.time).toLocaleString(undefined, {
           year: 'numeric',

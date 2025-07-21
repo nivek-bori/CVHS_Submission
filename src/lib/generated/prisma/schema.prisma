@@ -21,7 +21,7 @@ model User {
 model Location {
   id          String   @id @default(uuid())
   name        String
-  description String?
+  description String
   latitude    Float
   longitude   Float
   ratings     Rating[]

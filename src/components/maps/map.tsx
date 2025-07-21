@@ -280,7 +280,7 @@ export default function Map() {
         userId: user.id,
         locationId: locId,
         description: description ? description.toString() : '',
-        rating: rating,
+        value: rating,
         time: time,
       };
       // create new rating with current location id
@@ -316,7 +316,7 @@ export default function Map() {
               userId: user.id,
               locationId,
               description: description ? description.toString() : '',
-              rating: rating,
+              value: rating,
               time: time,
             };
             return axios.post('/api/rating', ratingBody);

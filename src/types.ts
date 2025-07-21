@@ -94,7 +94,7 @@ export type RatingCreateArgs = {
   userId: string;
   locationId: string;
   description: string;
-  rating: number;
+  value: number;
   time: Date;
 };
 

@@ -419,7 +419,7 @@ export namespace Prisma {
   ? False
   : T extends Uint8Array
   ? False
-  : T extends bigint
+  : T extends BigInt
   ? False
   : T extends object
   ? True
@@ -2366,7 +2366,7 @@ export namespace Prisma {
   export type LocationGroupByOutputType = {
     id: string
     name: string
-    description: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt: Date
@@ -2450,7 +2450,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
-      description: string | null
+      description: string
       latitude: number
       longitude: number
       createdAt: Date
@@ -4670,7 +4670,7 @@ export namespace Prisma {
     NOT?: LocationWhereInput | LocationWhereInput[]
     id?: StringFilter<"Location"> | string
     name?: StringFilter<"Location"> | string
-    description?: StringNullableFilter<"Location"> | string | null
+    description?: StringFilter<"Location"> | string
     latitude?: FloatFilter<"Location"> | number
     longitude?: FloatFilter<"Location"> | number
     createdAt?: DateTimeFilter<"Location"> | Date | string
@@ -4681,7 +4681,7 @@ export namespace Prisma {
   export type LocationOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrderInput | SortOrder
+    description?: SortOrder
     latitude?: SortOrder
     longitude?: SortOrder
     createdAt?: SortOrder
@@ -4695,7 +4695,7 @@ export namespace Prisma {
     OR?: LocationWhereInput[]
     NOT?: LocationWhereInput | LocationWhereInput[]
     name?: StringFilter<"Location"> | string
-    description?: StringNullableFilter<"Location"> | string | null
+    description?: StringFilter<"Location"> | string
     latitude?: FloatFilter<"Location"> | number
     longitude?: FloatFilter<"Location"> | number
     createdAt?: DateTimeFilter<"Location"> | Date | string
@@ -4706,7 +4706,7 @@ export namespace Prisma {
   export type LocationOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrderInput | SortOrder
+    description?: SortOrder
     latitude?: SortOrder
     longitude?: SortOrder
     createdAt?: SortOrder
@@ -4724,7 +4724,7 @@ export namespace Prisma {
     NOT?: LocationScalarWhereWithAggregatesInput | LocationScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Location"> | string
     name?: StringWithAggregatesFilter<"Location"> | string
-    description?: StringNullableWithAggregatesFilter<"Location"> | string | null
+    description?: StringWithAggregatesFilter<"Location"> | string
     latitude?: FloatWithAggregatesFilter<"Location"> | number
     longitude?: FloatWithAggregatesFilter<"Location"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Location"> | Date | string
@@ -4874,7 +4874,7 @@ export namespace Prisma {
   export type LocationCreateInput = {
     id?: string
     name: string
-    description?: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt?: Date | string
@@ -4885,7 +4885,7 @@ export namespace Prisma {
   export type LocationUncheckedCreateInput = {
     id?: string
     name: string
-    description?: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt?: Date | string
@@ -4896,7 +4896,7 @@ export namespace Prisma {
   export type LocationUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4907,7 +4907,7 @@ export namespace Prisma {
   export type LocationUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4918,7 +4918,7 @@ export namespace Prisma {
   export type LocationCreateManyInput = {
     id?: string
     name: string
-    description?: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt?: Date | string
@@ -4928,7 +4928,7 @@ export namespace Prisma {
   export type LocationUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -4938,7 +4938,7 @@ export namespace Prisma {
   export type LocationUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5732,7 +5732,7 @@ export namespace Prisma {
   export type LocationCreateWithoutRatingsInput = {
     id?: string
     name: string
-    description?: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt?: Date | string
@@ -5742,7 +5742,7 @@ export namespace Prisma {
   export type LocationUncheckedCreateWithoutRatingsInput = {
     id?: string
     name: string
-    description?: string | null
+    description: string
     latitude: number
     longitude: number
     createdAt?: Date | string
@@ -5795,7 +5795,7 @@ export namespace Prisma {
   export type LocationUpdateWithoutRatingsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5805,7 +5805,7 @@ export namespace Prisma {
   export type LocationUncheckedUpdateWithoutRatingsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     latitude?: FloatFieldUpdateOperationsInput | number
     longitude?: FloatFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
