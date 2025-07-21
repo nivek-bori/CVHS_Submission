@@ -46,7 +46,7 @@ export default function SignUp() {
     setTimeout(() => controller.abort(), 1000 * 60);
 
     axios
-      .post('http://localhost:3000/api/signup', reqBody, { signal: controller.signal })
+      .post('/api/signup', reqBody, { signal: controller.signal })
       .then(res => {
         setStatus({ status: res.data.status, message: res.data.message });
 
@@ -136,7 +136,7 @@ export default function SignUp() {
     setTimeout(() => controller.abort(), 1000 * 60);
 
     axios
-      .post('http://localhost:3000/api/profile', reqBody, { signal: controller.signal })
+      .post('api/profile', reqBody, { signal: controller.signal })
       .then(res => {
         setStatus({ status: res.data.status, message: res.data.message });
 
