@@ -43,11 +43,16 @@ export default function MessageBox({ children, color, className = '' }: MessageB
 
   return (
     <div
-      className={`rounded-xl ${bg} border ${border} px-4 py-2.5 ${text} shadow-sm ${className} cursor-pointer`}
+      className={`flex items-center justify-between rounded-xl ${bg} border ${border} px-4 py-1 ${text} shadow-sm ${className} cursor-pointer`}
       role="alert"
       onClick={() => setVisible(false)}
       title="Click to dismiss">
-      {children}
+      <>
+        {children}
+        <span className="rounded py-1 text-lg font-bold text-gray-500 transition hover:bg-gray-200 hover:text-gray-700">
+          ×
+        </span>
+      </>
     </div>
   );
 }

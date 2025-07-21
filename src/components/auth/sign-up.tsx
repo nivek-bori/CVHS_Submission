@@ -5,7 +5,14 @@ import { useState, useEffect } from 'react';
 
 import axios from 'axios';
 
-import { SignUpArgs } from '@/types';
+import dynamic from 'next/dynamic';
+
+const GoogleAuthButton = dynamic(
+  () => import('@/components/auth/google-button'),
+  { ssr: false },
+);
+
+import { CreateUserArgs, SignUpArgs } from '@/types';
 import { parseError } from '@/lib/util/server_util';
 import Loading from '../ui/loading';
 import FloatingMessage from '../ui/floating-message';
@@ -98,65 +105,57 @@ export default function SignUp() {
     signUp(email, password, name);
   };
 
+  // gogole sign in auth callback
   const handleGoogleAuthResponse = useCallback(async (response: any) => {
-      const { data: auth_data, error: auth_error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: response.credential,
-      });
-  
-      if (auth_error) {
-        setStatus({ status: 'error', message: await parseError(auth_error.message, auth_error.code) });
-        return;
-      }
-      if (!auth_data.user) {
-        setStatus({ status: 'error', message: 'There was an issue signing in with Google' });
-        return;
-      }
-  
-      setStatus({ status: 'success', message: 'Successfully signed in with Google' });
-    }, []);
-  
-    // create google social auth
-    useEffect(() => {
-      setStatus({ status: 'page_loading', message: '' });
-  
-      window.handleGoogleAuthResponse = handleGoogleAuthResponse;
-  
-      if (window.google?.accounts?.id) {
-        // initialize
-        if (typeof window.google.accounts.id.initialize === 'function') {
-          window.google.accounts.id.initialize({
-            client_id: config.google.client_id,
-            callback: handleGoogleAuthResponse,
-            auto_select: true,
-            itp_support: true,
-          });
-        }
-        // select user account
-        if (typeof window.google.accounts.id.prompt === 'function') {
-          window.google.accounts.id.prompt();
-        }
-        // render button
-        const buttonContainer = document.querySelector('.g_id_signup');
-        if (buttonContainer && typeof window.google.accounts.id.renderButton === 'function') {
-          window.google.accounts.id.renderButton(buttonContainer as HTMLElement, {
-            type: 'standard',
-            shape: 'pill',
-            theme: 'outline',
-            text: 'signup_with',
-            size: 'large',
-            logo_alignment: 'left',
-          });
-  
-          setStatus({ status: 'null', message: '' });
+    setStatus({ status: 'loading', message: 'Signing in with Google...' });
+
+    const { data: auth_data, error: auth_error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential,
+    });
+
+    if (auth_error) {
+      setStatus({ status: 'error', message: await parseError(auth_error.message, auth_error.code) });
+      return;
+    }
+    if (!auth_data.user) {
+      setStatus({ status: 'error', message: 'There was an issue signing in with Google' });
+      return;
+    }
+
+    // Create database user
+    setStatus({ status: 'loading', message: 'Setting up your account...' });
+
+    const reqBody: CreateUserArgs = {
+      userId: auth_data.user.id,
+      email: auth_data.user.email,
+      name: auth_data.user.user_metadata?.full_name,
+    };
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 1000 * 60);
+
+    axios
+      .post('http://localhost:3000/api/profile', reqBody, { signal: controller.signal })
+      .then(res => {
+        setStatus({ status: res.data.status, message: res.data.message });
+
+        setStatus({ status: 'success', message: 'Successfully signed up with Google' });
+      })
+      .catch(err => {
+        if (err.response) {
+          console.log('Page /signup google auth create user error: ', err);
+          (async () => {
+            setStatus({ status: 'error', message: await parseError(err.response.data.message) });
+          })();
         } else {
-          setStatus({ status: 'error', message: 'There was an issue loading Google sign in. Please try again later if that is an issue' });
+          console.log('Page /signup google auth create user error: ', err);
+          (async () => {
+            setStatus({ status: 'error', message: await parseError(err.message) });
+          })();
         }
-      }
-      return () => {
-        delete window.handleGoogleAuthResponse;
-      };
-    }, []);
+      });
+  }, []);
 
   if (status.status === 'page_loading') {
     return <Loading message={'Loading...'} />;
@@ -165,7 +164,7 @@ export default function SignUp() {
   if (status.status === 'success-page') {
     return (
       <>
-        <FloatingMessage color='blue'>Please confirm your email</FloatingMessage>
+        <FloatingMessage color="blue">Please confirm your email</FloatingMessage>
         <AuthenticationSucess header={'Sign up success'}></AuthenticationSucess>
       </>
     );
@@ -235,24 +234,8 @@ export default function SignUp() {
             </button>
           </form>
 
-          <div
-            id="g_id_onload"
-            data-client_id={config.google.client_id}
-            data-context="signup"
-            data-ux_mode="popup"
-            data-callback="handleGoogleAuthResponse"
-            data-auto_select="true"
-            data-itp_support="true"></div>
+          <GoogleAuthButton handleGoogleAuthCallback={handleGoogleAuthResponse} setStatus={setStatus} buttonText={'signup_with'} buttonContext={'signup'} />
 
-          <div
-            className="g_id_signup mt-4"
-            data-type="standard"
-            data-shape="pill"
-            data-theme="outline"
-            data-text="signup_with"
-            data-size="large"
-            data-logo_alignment="left"></div>
-          
           <div className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{' '}
             <a href="/auth/sign-in" className="text-blue-600 hover:underline">

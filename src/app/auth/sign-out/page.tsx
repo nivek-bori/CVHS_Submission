@@ -22,7 +22,7 @@ export default function SignOutPage() {
       }
 
       setStatus({ status: 'success', message: 'Signed out successfully. Redirecting soon...' });
-      setTimeout(() => router.push(config.app.default_route), 2000);
+      setTimeout(() => router.push(config.app.default_route), 1000);
     }
     exec();
   }, [supabase]);

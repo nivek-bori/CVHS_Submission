@@ -10,7 +10,11 @@ export async function GET(request: Request) {
   try {
     const locations = await prisma.location.findMany({
       include: {
-        ratings: true,
+        ratings: {
+          include: {
+            user: true, // This will include the related user for each rating
+          },
+        },
       },
     });
 

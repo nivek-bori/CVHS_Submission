@@ -25,7 +25,7 @@ export interface Rating {
   userId: string;
   location: Location;
   locationId: string;
-  rating: number;
+  value: number;
   description: string | null;
   time: string;
   imageUrl: string | null;
@@ -94,11 +94,22 @@ export type RatingCreateArgs = {
   userId: string;
   locationId: string;
   description: string;
-  value: number;
+  rating: number;
   time: Date;
 };
 
 export type RatingCreateRet = {
+  status: string;
+  message: string;
+};
+
+export type CreateUserArgs = {
+  userId: string;
+  email: string;
+  name: string;
+};
+
+export type CreateUserRet = {
   status: string;
   message: string;
 };

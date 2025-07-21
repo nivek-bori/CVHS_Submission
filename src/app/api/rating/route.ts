@@ -10,6 +10,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isAuthorized } from '@/lib/util/utils';
 import prisma from '@/lib/prisma';
 import { RatingCreateRet, RatingGetRet } from '@/types';
+import { parseError } from '@/lib/util/server_util';
 
 export async function GET(request: Request) {
   try {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
   time.setSeconds(0, 0);
 
   if (!body) {
+    console.error('Please provide all required information');
     const retBody: RatingCreateRet = { status: 'error', message: 'Please provide all required information' };
     return NextResponse.json(retBody, { status: 400 });
   }
@@ -54,11 +56,13 @@ export async function POST(request: Request) {
     isNaN(time.getTime()) ||
     (description !== undefined && typeof description !== 'string')
   ) {
+    console.error('Please provide information of correct data type');
     const retBody: RatingCreateRet = { status: 'error', message: 'Please provide information of correct data type' };
     return NextResponse.json(retBody, { status: 400 });
   }
 
   try {
+    console.log('user id', typeof userId, userId);
     // Create the Rating using Prisma
     const newRating = await prisma.rating.create({
       data: {
@@ -76,7 +80,7 @@ export async function POST(request: Request) {
     };
     return NextResponse.json(retBody, { status: 200 });
   } catch (error: any) {
-    console.log('Route: /api/rating error', error);
+    console.log('Route: /api/rating error', parseError(error.message, error.code));
 
     const retBody: RatingCreateRet = { status: 'error', message: 'Server error. Please refresh or try again later' };
     return NextResponse.json(retBody, { status: 500 });

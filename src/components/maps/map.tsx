@@ -34,7 +34,7 @@ export default function Map() {
   const tempMarkerRef = useRef<any>(null);
   const markersRef = useRef<any>(null);
 
-  const [locId, setLocId] = useState<string | null>(null);
+  const [dbLocId, setdbLocId] = useState<string | null>(null);
   const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(null);
   const [locName, setLocName] = useState<string>('');
   const [showSidebar, setShowSidebar] = useState<boolean>(false);
@@ -108,6 +108,7 @@ export default function Map() {
     try {
       const res = await axios.get('/api/location');
       if (res.data && res.data.locations) {
+        console.log(res.data.locations);
         return res.data.locations;
       } else {
         return [];
@@ -146,7 +147,7 @@ export default function Map() {
       // info window of marker
       marker.addListener('click', () => {
         onMarckerClicked(marker, loc, false);
-        setLocId(loc.id);
+        setdbLocId(loc.id);
       });
 
       return marker;
@@ -174,11 +175,11 @@ export default function Map() {
     });
 
     onMarckerClicked(marker, location, true);
-    setLocId(null);
+    setdbLocId(null);
 
     marker.addListener('click', () => {
       onMarckerClicked(marker, location, true);
-      setLocId(null);
+      setdbLocId(null);
     });
 
     return marker;
@@ -270,17 +271,18 @@ export default function Map() {
     const form = e.currentTarget;
     const data = new window.FormData(form);
 
-    const description = data.get('description');
+    const locationDescription = data.get('location_description');
+    const ratingDescription = data.get('rating_description');
     const rating = Number(data.get('rating'));
     const timeValue = data.get('time');
     const time = timeValue ? new Date(timeValue.toString()) : new Date();
 
-    if (locId) {
+    if (dbLocId) {
       const ratingBody: RatingCreateArgs = {
         userId: user.id,
-        locationId: locId,
-        description: description ? description.toString() : '',
-        value: rating,
+        locationId: dbLocId,
+        description: ratingDescription ? ratingDescription.toString() : '',
+        rating: rating,
         time: time,
       };
       // create new rating with current location id
@@ -304,7 +306,7 @@ export default function Map() {
       axios
         .post('/api/location', {
           name: locName.substring(24) || 'Untitled',
-          description: description ? description.toString() : '',
+          description: locationDescription ? locationDescription.toString() : '',
           latitude: latLng.lat,
           longitude: latLng.lng,
         })
@@ -315,8 +317,8 @@ export default function Map() {
             const ratingBody: RatingCreateArgs = {
               userId: user.id,
               locationId,
-              description: description ? description.toString() : '',
-              value: rating,
+              description: ratingDescription ? ratingDescription.toString() : '',
+              rating: rating,
               time: time,
             };
             return axios.post('/api/rating', ratingBody);
@@ -340,11 +342,11 @@ export default function Map() {
   };
 
   return (
-    <div className="h-full w-full overflow-hidden">
+    <div className="flex flex-col w-full h-full overflow-hidden">
       {status.status === 'loading' && <Loading message={'Loading map...'} />}
 
-      <div className="flex h-full w-full">
-        <div ref={htmlMapRef} className="h-full flex-1"></div>
+      <div className="flex flex-1">
+        <div ref={htmlMapRef} className="flex-1"></div>
 
         {status.status !== 'loading' && (
           <button
@@ -383,9 +385,21 @@ export default function Map() {
                     name="rating"
                   />
                 </label>
+                {!dbLocId && (
+                  <label className="flex flex-col gap-1">
+                    <span className="font-medium">Location Description</span>
+                    <input
+                      type="text"
+                      className="rounded border px-2 py-1"
+                      placeholder="Location Description"
+                      disabled={latLng == null}
+                      name="location_description"
+                    />
+                  </label>
+                )}
                 <label className="flex flex-col gap-1">
-                  <span className="font-medium">Description</span>
-                  <input type="text" className="rounded border px-2 py-1" placeholder="Description" disabled={latLng == null} name="description" />
+                  <span className="font-medium">Rating Description</span>
+                  <input type="text" className="rounded border px-2 py-1" placeholder="Rating Description" disabled={latLng == null} name="rating_description" />
                 </label>
                 <label className="flex flex-col gap-1">
                   <span className="font-medium">Time</span>

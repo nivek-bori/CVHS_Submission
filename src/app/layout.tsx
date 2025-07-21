@@ -19,12 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full w-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} h-full w-full antialiased`}>
-        <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <html lang="en" className="max-h-screen w-full">
+      <body className={`${geistSans.variable} ${geistMono.variable} flex max-h-full w-full flex-col antialiased`}>
         <AuthProvider>
+          <script src="https://accounts.google.com/gsi/client" async defer></script>
           <Navigation></Navigation>
-          {children}
+          <div className='flex flex-1'>{children}</div>
         </AuthProvider>
       </body>
     </html>

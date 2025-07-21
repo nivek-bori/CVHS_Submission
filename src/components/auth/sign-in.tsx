@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 
 import axios from 'axios';
 
+import dynamic from 'next/dynamic';
+
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { SignInArgs } from '@/types';
@@ -16,21 +18,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { config } from '@/lib/config';
 import FloatingMessage from '../ui/floating-message';
 import { useAuth } from './auth-provider';
-
-declare global {
-  interface Window {
-    handleGoogleAuthResponse?: (response: any) => void;
-    google?: {
-      accounts?: {
-        id?: {
-          initialize?: (config: any) => void;
-          renderButton?: (element: HTMLElement, config: any) => void;
-          prompt?: () => void;
-        };
-      };
-    };
-  }
-}
+const GoogleAuthButton = dynamic(
+  () => import('@/components/auth/google-button'),
+  { ssr: false },
+);
 
 interface SignInParams {
   onSignIn: () => void;
@@ -129,48 +120,6 @@ export default function SignIn(params: SignInParams) {
     setStatus({ status: 'success', message: 'Successfully signed in with Google' });
   }, []);
 
-  // create google social auth
-  useEffect(() => {
-    setStatus({ status: 'page_loading', message: '' });
-
-    window.handleGoogleAuthResponse = handleGoogleAuthResponse;
-
-    if (window.google?.accounts?.id) {
-      // initialize
-      if (typeof window.google.accounts.id.initialize === 'function') {
-        window.google.accounts.id.initialize({
-          client_id: config.google.client_id,
-          callback: handleGoogleAuthResponse,
-          auto_select: true,
-          itp_support: true,
-        });
-      }
-      // select user account
-      if (typeof window.google.accounts.id.prompt === 'function') {
-        window.google.accounts.id.prompt();
-      }
-      // render button
-      const buttonContainer = document.querySelector('.g_id_signin');
-      if (buttonContainer && typeof window.google.accounts.id.renderButton === 'function') {
-        window.google.accounts.id.renderButton(buttonContainer as HTMLElement, {
-          type: 'standard',
-          shape: 'pill',
-          theme: 'outline',
-          text: 'signin_with',
-          size: 'large',
-          logo_alignment: 'left',
-        });
-
-        setStatus({ status: 'null', message: '' });
-      } else {
-        setStatus({ status: 'error', message: 'There was an issue loading Google sign in. Please try again later if that is an issue' });
-      }
-    }
-    return () => {
-      delete window.handleGoogleAuthResponse;
-    };
-  }, []);
-
   if (status.status === 'page_loading') {
     return <Loading message={'Loading...'}></Loading>;
   }
@@ -225,24 +174,8 @@ export default function SignIn(params: SignInParams) {
               {status.status === 'loading' ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
-          {/* Google Sign In */}
-          <div
-            id="g_id_onload"
-            data-client_id={config.google.client_id}
-            data-context="signin"
-            data-ux_mode="popup"
-            data-callback="handleGoogleAuthResponse"
-            data-auto_select="true"
-            data-itp_support="true"></div>
 
-          <div
-            className="g_id_signin mt-4"
-            data-type="standard"
-            data-shape="pill"
-            data-theme="outline"
-            data-text="signin_with"
-            data-size="large"
-            data-logo_alignment="left"></div>
+          <GoogleAuthButton handleGoogleAuthCallback={handleGoogleAuthResponse} setStatus={setStatus} buttonText={'signin_with'} buttonContext={'signin'}></GoogleAuthButton>
           <div className="mt-4 text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
             <a href="/auth/sign-up" className="text-blue-600 hover:underline">

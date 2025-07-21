@@ -79,7 +79,7 @@ export default function EnforceMFA({ children, className='' }: Readonly<{ childr
   }, [checkMFA, version]);
 
   if (status.status === 'error') {
-    router.push(`${config.app.default_route}?message=There was an error opening that page_loading`);
+    // router.push(`${config.app.default_route}?message=There was an error opening that page_loading`);
   }
   if (status.status === 'signin') {
     return <SignIn onSignIn={checkMFA}/>;
@@ -91,5 +91,5 @@ export default function EnforceMFA({ children, className='' }: Readonly<{ childr
     return <div className={`${className}`}>{children}</div>;
   }
 
-  return <Loading message={'Loading...'} ></Loading>;
+  return <Loading message={'Authentication Loading...'} ></Loading>;
 }

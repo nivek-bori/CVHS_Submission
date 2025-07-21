@@ -26,6 +26,9 @@ export async function parseError(message: string, code?: string): Promise<string
 	// prisma
 	if (code === 'P2002') retMessage = 'An account with that email already exists. Sign in instead?';
 
+	// google
+	if (code === 'identity_already_exists') retMessage = 'That account is already linked to another account. Try another account'
+
 	console.log('ParseError:', code, message.slice(0, 100));
 	return retMessage;
 }

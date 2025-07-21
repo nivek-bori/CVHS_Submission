@@ -10,8 +10,8 @@ export default function AdditionalAuth() {
         <Link href="/auth/enable-mfa" className="rounded bg-blue-600 px-4 py-2 text-center font-semibold text-white transition hover:bg-blue-700">
           Enable MFA
         </Link>
-        <Link href="/auth/enable-google" className="rounded bg-blue-600 px-4 py-2 text-center font-semibold text-white transition hover:bg-blue-700">
-          Enable Google Sign In
+        <Link href="/auth/connect-google" className="rounded bg-blue-600 px-4 py-2 text-center font-semibold text-white transition hover:bg-blue-700">
+          Connect Google Account
         </Link>
       </div>
     </div>
